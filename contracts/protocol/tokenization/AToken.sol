@@ -16,6 +16,7 @@ import {IncentivizedERC20} from './base/IncentivizedERC20.sol';
 import {EIP712Base} from './base/EIP712Base.sol';
 
 /**
+ * 这个合约是aave动态利息代币的实现
  * @title Aave ERC20 AToken
  * @author Aave
  * @notice Implementation of the interest bearing token for the Aave protocol
@@ -31,6 +32,7 @@ contract AToken is VersionedInitializable, ScaledBalanceTokenBase, EIP712Base, I
   uint256 public constant ATOKEN_REVISION = 0x1;
 
   address internal _treasury;
+  //底层资产地址，如USDC、ETH等
   address internal _underlyingAsset;
 
   /// @inheritdoc VersionedInitializable
@@ -124,10 +126,18 @@ contract AToken is VersionedInitializable, ScaledBalanceTokenBase, EIP712Base, I
     _transfer(from, to, value, false);
   }
 
+  /**
+   * 核心函数，返回用户的动态余额
+   通过将用户的scaled balance乘以当前的归一化收益率来计算
+   * @param user 用户地址
+   * @return 用户的动态余额
+   */
   /// @inheritdoc IERC20
   function balanceOf(
     address user
   ) public view virtual override(IncentivizedERC20, IERC20) returns (uint256) {
+    //POOL.getReserveNormalizedIncome(_underlyingAsset) 当前的归一化收益率
+    //实时计算用户余额=用户的atoken数量*收益率
     return super.balanceOf(user).rayMul(POOL.getReserveNormalizedIncome(_underlyingAsset));
   }
 
