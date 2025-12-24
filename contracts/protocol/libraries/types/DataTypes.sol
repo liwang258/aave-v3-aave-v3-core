@@ -3,35 +3,35 @@ pragma solidity ^0.8.0;
 
 library DataTypes {
   struct ReserveData {
-    //stores the reserve configuration
+    // 存储该储备资产的全套核心配置信息（含启用状态、抵押权限、风控系数等行为规则）
     ReserveConfigurationMap configuration;
-    //the liquidity index. Expressed in ray
+    // 流动性指数（供应指数），以ray（10^27）为单位，用于计算用户aToken的应计利息（aToken余额=初始余额×该指数）
     uint128 liquidityIndex;
-    //the current supply rate. Expressed in ray
+    // 当前供应利率，以ray（10^27）为单位，是用户存入该资产提供流动性时，当前可获得的年化利率（动态更新）
     uint128 currentLiquidityRate;
-    //variable borrow index. Expressed in ray
+    // 可变借款指数，以ray（10^27）为单位，用于计算用户可变利率债务的应计利息（可变债务余额=初始余额×该指数）
     uint128 variableBorrowIndex;
-    //the current variable borrow rate. Expressed in ray
+    // 当前可变借款利率，以ray（10^27）为单位，是用户以可变利率模式借款时，当前适用的年化利率（随市场流动性波动）
     uint128 currentVariableBorrowRate;
-    //the current stable borrow rate. Expressed in ray
+    // 当前稳定借款利率，以ray（10^27）为单位，是用户以稳定利率模式借款时，当前适用的年化利率（借款时锁定，极端场景小幅调整）
     uint128 currentStableBorrowRate;
-    //timestamp of last update
+    // 该储备资产最后一次状态（利率、指数等）更新的时间戳，是计算利息累积的核心时间基准
     uint40 lastUpdateTimestamp;
-    //the id of the reserve. Represents the position in the list of the active reserves
+    // 储备资产ID，代表该资产在协议活跃储备资产列表中的位置索引，用于快速定位数据
     uint16 id;
-    //aToken address
+    // 该储备资产对应的aToken合约地址（计息存款凭证，用户存入底层资产后获得，余额随流动性指数复利增长）
     address aTokenAddress;
-    //stableDebtToken address
+    // 该储备资产对应的稳定债务代币合约地址（用户稳定利率借款时的债务凭证，还款时需销毁对应代币）
     address stableDebtTokenAddress;
-    //variableDebtToken address
+    // 该储备资产对应的可变债务代币合约地址（用户可变利率借款时的债务凭证，余额随可变借款指数增长）
     address variableDebtTokenAddress;
-    //address of the interest rate strategy
+    // 该储备资产的利率策略合约地址，内置利率定价模型（基于流动性使用率），决定各类利率的动态调整逻辑
     address interestRateStrategyAddress;
-    //the current treasury balance, scaled
+    // 累积归属协议国库的手续费余额（已按资产精度缩放），来自借款利息分成，是协议核心收入来源
     uint128 accruedToTreasury;
-    //the outstanding unbacked aTokens minted through the bridging feature
+    // 无抵押aToken余额，指通过跨链桥等特殊功能铸造的、未对应实际底层资产的aToken（特殊场景使用）
     uint128 unbacked;
-    //the outstanding debt borrowed against this asset in isolation mode
+    // 隔离模式总债务，指用户在隔离模式下，以该资产为抵押所借的未偿还债务总额（用于隔离模式风险管控）
     uint128 isolationModeTotalDebt;
   }
 
@@ -79,7 +79,11 @@ library DataTypes {
     string label;
   }
 
-  enum InterestRateMode {NONE, STABLE, VARIABLE}
+  enum InterestRateMode {
+    NONE,
+    STABLE,
+    VARIABLE
+  }
 
   struct ReserveCache {
     uint256 currScaledVariableDebt;
@@ -210,10 +214,15 @@ library DataTypes {
   }
 
   struct CalculateUserAccountDataParams {
+    // 用户配置映射：存储该用户的借贷资产配置（如哪些资产作为抵押、哪些资产存在借款等）
     UserConfigurationMap userConfig;
+    // 协议中活跃储备资产的总数量：用于遍历所有储备资产，核对用户的借贷持仓情况
     uint256 reservesCount;
+    // 目标用户的钱包地址：指定需要计算账户数据的用户身份
     address user;
+    // 价格预言机合约地址：用于获取各类资产的实时市场价格（计算资产/债务的美元价值等）
     address oracle;
+    // 用户的加密模式（EMode）分类ID：EMode是同类高相关性资产的优化风控模式，该ID指定用户当前所属的EMode类别
     uint8 userEModeCategory;
   }
 
