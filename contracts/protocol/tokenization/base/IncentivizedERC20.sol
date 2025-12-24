@@ -45,7 +45,7 @@ abstract contract IncentivizedERC20 is Context, IERC20Detailed {
    * this field to store the user's stable rate.
    */
   struct UserState {
-    uint128 balance;
+    uint128 balance;  //这里存的是用户的scaledBalance   存加取减
     uint128 additionalData;
   }
   // Map of users address and their state data (userAddress => userStateData)
